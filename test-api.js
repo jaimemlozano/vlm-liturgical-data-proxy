@@ -1,20 +1,32 @@
 /**
  * Test script for VLM Liturgical Data Proxy API
- * Run with: node test-api.js
+ * Run with: API_KEY=your-key-here node test-api.js
  */
 
 const API_URL = 'https://vlm-liturgical-data-proxy.vercel.app/api/data/version.json';
+const API_KEY = process.env.API_KEY;
 
 async function testAPI() {
   console.log('🧪 Testing VLM Liturgical Data Proxy API\n');
   console.log(`Testing URL: ${API_URL}\n`);
+  
+  if (!API_KEY) {
+    console.error('❌ Error: API_KEY environment variable is required');
+    console.error('   Usage: API_KEY=your-key-here node test-api.js\n');
+    process.exit(1);
+  }
+  
   console.log('='.repeat(50));
 
   try {
     const startTime = Date.now();
     
-    console.log('\n📤 Making request...');
-    const response = await fetch(API_URL);
+    console.log('\n📤 Making request with X-Api-Key header...');
+    const response = await fetch(API_URL, {
+      headers: {
+        'X-Api-Key': API_KEY
+      }
+    });
     const duration = Date.now() - startTime;
 
     console.log(`\n✅ Response received in ${duration}ms`);

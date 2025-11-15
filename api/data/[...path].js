@@ -11,6 +11,47 @@ export default async (req, res) => {
     timestamp: new Date().toISOString(),
   });
 
+  // 0. Authenticate request with API key
+  const API_KEY = process.env.API_KEY;
+  const providedApiKey = req.headers['x-api-key'] || req.headers['X-Api-Key'];
+  
+  if (!API_KEY) {
+    console.error('[API] Missing API_KEY environment variable');
+    return res.status(500).json({ 
+      error: 'Server configuration error',
+      details: 'API key not configured'
+    });
+  }
+
+  if (!providedApiKey) {
+    console.warn('[API] Authentication failed: Missing X-Api-Key header');
+    return res.status(401).json({ 
+      error: 'Unauthorized',
+      details: 'Missing X-Api-Key header'
+    });
+  }
+
+  // Use constant-time comparison to prevent timing attacks
+  // Compare lengths first, then compare each character
+  let isValidKey = providedApiKey.length === API_KEY.length;
+  if (isValidKey) {
+    let diff = 0;
+    for (let i = 0; i < API_KEY.length; i++) {
+      diff |= providedApiKey.charCodeAt(i) ^ API_KEY.charCodeAt(i);
+    }
+    isValidKey = diff === 0;
+  }
+  
+  if (!isValidKey) {
+    console.warn('[API] Authentication failed: Invalid API key provided');
+    return res.status(401).json({ 
+      error: 'Unauthorized',
+      details: 'Invalid API key'
+    });
+  }
+
+  console.log('[API] Authentication successful');
+
   // 1. Get the file path from the URL.
   // e.g., if the app requests /api/data/en/version.json
   // the 'path' variable will be ['en', 'version.json']
