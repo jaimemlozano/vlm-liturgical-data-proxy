@@ -1,9 +1,18 @@
 #!/bin/bash
 
 # Test script for VLM Liturgical Data Proxy API
-# Usage: API_KEY=your-key-here ./test-api.sh
+# Reads API_KEY from .env file or environment variable
+# Usage: ./test-api.sh
 
-API_URL="https://vlm-liturgical-data-proxy.vercel.app/api/data/version.json"
+# Load .env file if it exists
+if [ -f .env ]; then
+  export $(grep -v '^#' .env | grep -v '^$' | xargs)
+fi
+
+# API_URL="https://vlm-liturgical-data-proxy.vercel.app/api/data/version.json"
+API_URL="https://vlm-liturgical-data-proxy.vercel.app/api/data/en/firstReadings.json"  # Now works with vercel.json rewrite!
+# API_URL="http://localhost:3000/api/data/en/firstReadings.json"  # For local testing
+
 API_KEY="${API_KEY:-}"
 
 echo "🧪 Testing VLM Liturgical Data Proxy API"
@@ -14,7 +23,8 @@ echo ""
 
 if [ -z "$API_KEY" ]; then
   echo "❌ Error: API_KEY environment variable is required"
-  echo "   Usage: API_KEY=your-key-here ./test-api.sh"
+  echo "   Please set API_KEY in your .env file or as an environment variable"
+  echo "   .env file format: API_KEY=your-key-here"
   exit 1
 fi
 

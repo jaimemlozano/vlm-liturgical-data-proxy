@@ -55,6 +55,7 @@ export default async (req, res) => {
   // 1. Get the file path from the URL.
   // e.g., if the app requests /api/data/en/version.json
   // the 'path' variable will be ['en', 'version.json']
+  // OR if URL-encoded: /api/data/en%2FfirstReadings.json -> ['en/firstReadings.json']
   let pathSegments = null;
   
   // Try to get path from query first (standard catch-all route behavior)
@@ -66,8 +67,12 @@ export default async (req, res) => {
   // If not in query, try to extract from URL
   if (!pathSegments && req.url) {
     try {
-      const urlPath = req.url.replace('/api/data', '').split('?')[0];
+      // Decode URL-encoded path (handles %2F -> /)
+      const decodedUrl = decodeURIComponent(req.url);
+      const urlPath = decodedUrl.replace('/api/data', '').split('?')[0];
+      
       if (urlPath && urlPath !== '/') {
+        // Split by / and filter out empty segments
         pathSegments = urlPath.split('/').filter(Boolean);
         console.log('[API] Extracted path from URL:', pathSegments);
       }
@@ -76,11 +81,28 @@ export default async (req, res) => {
     }
   }
   
-  // Normalize pathSegments to array
+  // Normalize pathSegments to array and handle URL-encoded segments
   if (pathSegments) {
     if (typeof pathSegments === 'string') {
-      pathSegments = [pathSegments];
-    } else if (!Array.isArray(pathSegments)) {
+      // If it's a single string, check if it contains encoded slashes
+      // e.g., "en%2FfirstReadings.json" or "en/firstReadings.json"
+      const decoded = decodeURIComponent(pathSegments);
+      if (decoded.includes('/')) {
+        // Split if it contains slashes (from URL encoding)
+        pathSegments = decoded.split('/').filter(Boolean);
+      } else {
+        pathSegments = [decoded];
+      }
+    } else if (Array.isArray(pathSegments)) {
+      // Decode each segment in case any are URL-encoded
+      pathSegments = pathSegments.map(seg => {
+        try {
+          return decodeURIComponent(String(seg));
+        } catch {
+          return String(seg);
+        }
+      });
+    } else {
       pathSegments = [String(pathSegments)];
     }
   }

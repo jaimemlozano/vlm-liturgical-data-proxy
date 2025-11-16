@@ -1,9 +1,30 @@
 /**
  * Test script for VLM Liturgical Data Proxy API
- * Run with: API_KEY=your-key-here node test-api.js
+ * Reads API_KEY from .env file or environment variable
+ * Run with: node test-api.js
  */
 
-const API_URL = 'https://vlm-liturgical-data-proxy.vercel.app/api/data/version.json';
+const fs = require('fs');
+const path = require('path');
+
+// Load .env file if it exists
+const envPath = path.join(__dirname, '.env');
+if (fs.existsSync(envPath)) {
+  const envFile = fs.readFileSync(envPath, 'utf8');
+  envFile.split('\n').forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#')) {
+      const [key, ...valueParts] = trimmed.split('=');
+      if (key && valueParts.length > 0) {
+        const value = valueParts.join('=').replace(/^["']|["']$/g, ''); // Remove quotes
+        process.env[key.trim()] = value.trim();
+      }
+    }
+  });
+}
+
+// const API_URL = 'https://vlm-liturgical-data-proxy.vercel.app/api/data/version.json';
+const API_URL = "https://vlm-liturgical-data-proxy.vercel.app/api/data/en/firstReadings.json";
 const API_KEY = process.env.API_KEY;
 
 async function testAPI() {
@@ -12,7 +33,8 @@ async function testAPI() {
   
   if (!API_KEY) {
     console.error('❌ Error: API_KEY environment variable is required');
-    console.error('   Usage: API_KEY=your-key-here node test-api.js\n');
+    console.error('   Please set API_KEY in your .env file or as an environment variable\n');
+    console.error('   .env file format: API_KEY=your-key-here\n');
     process.exit(1);
   }
   
