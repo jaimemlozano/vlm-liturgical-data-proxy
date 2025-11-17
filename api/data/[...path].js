@@ -209,7 +209,14 @@ export default async (req, res) => {
     
     // IMPORTANT: Return raw text to preserve exact byte-for-byte content for hash validation
     // Do NOT parse and re-stringify JSON as it changes whitespace/formatting and breaks hashes
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
+    
+    // TEMPORARY COMMENTED OUT Caching
+    // res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
+    
+    // TEMPORARY: No caching
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    // End TEMPORARY: No caching
+
     res.setHeader('Content-Type', contentType);
     res.status(200).send(responseText);
 
