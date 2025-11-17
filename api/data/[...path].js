@@ -154,6 +154,9 @@ export default async (req, res) => {
         'Authorization': `token ${GITHUB_TOKEN}`,
         'Accept': 'application/vnd.github.v3.raw',
         'User-Agent': 'vlm-liturgical-data-proxy',
+        // TEMPORARY: No caching
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+        // End TEMPORARY: No caching
       },
     });
 
