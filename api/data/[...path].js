@@ -186,27 +186,17 @@ export default async (req, res) => {
     const responseText = await response.text();
     console.log('[API] Received response, length:', responseText.length);
 
-    // Try to parse as JSON if it looks like JSON
-    let data;
+    // Determine content type based on file extension or content
     let contentType = 'application/json';
+    const trimmed = responseText.trim();
     
-    try {
-      // Check if response looks like JSON (starts with { or [)
-      const trimmed = responseText.trim();
-      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-        data = JSON.parse(responseText);
-        console.log('[API] Successfully parsed as JSON');
-      } else {
-        // Not JSON, return as text
-        data = responseText;
-        contentType = 'text/plain';
-        console.log('[API] Response is not JSON, returning as text');
-      }
-    } catch (parseError) {
-      // Parse failed, return as text
-      data = responseText;
+    // Check if it's JSON by extension or content
+    if (filePath.endsWith('.json')) {
+      contentType = 'application/json';
+    } else if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      contentType = 'application/json';
+    } else {
       contentType = 'text/plain';
-      console.log('[API] JSON parse failed, returning as text:', parseError.message);
     }
 
     const duration = Date.now() - startTime;
@@ -214,13 +204,14 @@ export default async (req, res) => {
       filePath,
       duration: `${duration}ms`,
       contentType,
-      dataSize: typeof data === 'string' ? data.length : JSON.stringify(data).length,
+      dataSize: responseText.length,
     });
     
-    // Add a 1-hour cache to keep it fast
+    // IMPORTANT: Return raw text to preserve exact byte-for-byte content for hash validation
+    // Do NOT parse and re-stringify JSON as it changes whitespace/formatting and breaks hashes
     res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
     res.setHeader('Content-Type', contentType);
-    res.status(200).json(data);
+    res.status(200).send(responseText);
 
   } catch (error) {
     const duration = Date.now() - startTime;
