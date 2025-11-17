@@ -154,9 +154,6 @@ export default async (req, res) => {
         'Authorization': `token ${GITHUB_TOKEN}`,
         'Accept': 'application/vnd.github.v3.raw',
         'User-Agent': 'vlm-liturgical-data-proxy',
-        // TEMPORARY: No caching
-        'Cache-Control': 'no-cache, no-store, must-revalidate'
-        // End TEMPORARY: No caching
       },
     });
 
@@ -213,13 +210,9 @@ export default async (req, res) => {
     // IMPORTANT: Return raw text to preserve exact byte-for-byte content for hash validation
     // Do NOT parse and re-stringify JSON as it changes whitespace/formatting and breaks hashes
     
-    // TEMPORARY COMMENTED OUT Caching
-    // res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
-    
-    // TEMPORARY: No caching
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    // End TEMPORARY: No caching
-
+    // Cache headers: 1 hour cache with stale-while-revalidate for performance
+    // The ?t=... query parameter in client requests will bust cache when needed
+    res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate, must-revalidate');
     res.setHeader('Content-Type', contentType);
     res.status(200).send(responseText);
 
