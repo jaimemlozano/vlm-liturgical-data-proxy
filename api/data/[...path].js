@@ -2,8 +2,6 @@
  * Vercel Serverless Function
  * This is your secure proxy.
  */
-import { isPublishedDataPath } from '../../lib/path-policy.mjs';
-
 export default async (req, res) => {
   const startTime = Date.now();
   console.log('[API] Request received:', {
@@ -12,11 +10,6 @@ export default async (req, res) => {
     query: req.query,
     timestamp: new Date().toISOString(),
   });
-
-  if (req.method !== 'GET' && req.method !== 'HEAD') {
-    res.setHeader('Allow', 'GET, HEAD');
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
 
   // 0. Authenticate request with API key
   const API_KEY = process.env.API_KEY;
@@ -132,11 +125,6 @@ export default async (req, res) => {
   // Now safely join the path segments
   const filePath = pathSegments.join('/');
   console.log('[API] Constructed file path:', filePath);
-
-  if (!isPublishedDataPath(filePath)) {
-    console.warn('[API] Rejected unpublished data path:', filePath);
-    return res.status(404).json({ error: 'File not found' });
-  }
 
   // 2. Get your secret GitHub Token (you will set this in Vercel's settings)
   const GITHUB_TOKEN = process.env.GITHUB_PAT;
