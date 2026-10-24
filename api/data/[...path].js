@@ -3,6 +3,12 @@
  * This is your secure proxy.
  */
 export default async (req, res) => {
+  const encoding = String(req.headers['content-encoding'] || 'identity').trim().toLowerCase();
+  const allowed = encoding.split(',').every((part) => ['identity', 'gzip', 'deflate', ''].includes(part.trim()));
+  if (!allowed) {
+    return res.status(415).json({ error: 'Use gzip, deflate, or an uncompressed request body.' });
+  }
+
   const startTime = Date.now();
   console.log('[API] Request received:', {
     method: req.method,
@@ -153,6 +159,7 @@ export default async (req, res) => {
       headers: {
         'Authorization': `token ${GITHUB_TOKEN}`,
         'Accept': 'application/vnd.github.v3.raw',
+        'Accept-Encoding': 'gzip, deflate',
         'User-Agent': 'vlm-liturgical-data-proxy',
       },
     });
