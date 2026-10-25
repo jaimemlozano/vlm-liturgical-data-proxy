@@ -144,9 +144,9 @@ export default async (req, res) => {
   }
 
   // 3. Use GitHub API for private repo access (raw.githubusercontent.com doesn't support auth headers)
-  const owner = 'kiwidiwi';
-  const repo = 'vlm-liturgical-data';
-  const branch = 'main';
+  const owner = process.env.DATA_REPO_OWNER || 'jaimemlozano';
+  const repo = process.env.DATA_REPO_NAME || 'vlm-liturgical-data';
+  const branch = process.env.DATA_REPO_BRANCH || 'main';
   
   // GitHub API endpoint for getting file contents
   const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}?ref=${branch}`;
